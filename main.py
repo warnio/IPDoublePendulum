@@ -1,7 +1,13 @@
+# See https://web.mit.edu/jorloff/www/chaosTalk/double-pendulum/double-pendulum-en.html
 
 import numpy as np
 
-dt = 1e-3
+
+def normalize_angle(angle):
+    return angle % (2 * np.pi)
+
+
+dt = 1e-4
 
 g = 9.81
 
@@ -14,55 +20,56 @@ l2 = 1
 t = 0
 
 theta1 = 0
-theta2 = 0
+theta2 = np.pi/2
 
-diff_theta1 = 0
-diff_theta2 = 0
+omega1 = 0
+omega2 = 0
 
-diff2_theta1 = 0
-diff2_theta2 = 0
+alpha1 = 0
+alpha2 = 0
 
-while t < 0.1:
 
-    next_theta1 = theta1 + diff_theta1 * dt
-    next_theta2 = theta2 + diff_theta2 * dt
+while t < np.inf:
 
-    next_diff_theta1 = diff_theta1 + diff2_theta1 * dt
-    next_diff_theta2 = diff_theta2 + diff2_theta2 * dt
+    next_theta1 = normalize_angle(theta1 + omega1 * dt)
+    next_theta2 = normalize_angle(theta2 + omega2 * dt)
 
-    next_diff2_theta1 = 4 / (m1 + 4*m2) * (
-            + .5 * m2 * l2 / l1 * (
-                    + diff_theta1 * (diff_theta1 - diff_theta2) * np.sin(theta1 - theta2)
-                    - diff2_theta2 * np.cos(theta1 - theta2)
-            )
-            + m2 * diff_theta1 * np.cos(theta1) / l1 * (
-                    + 1.0 * l1 * diff_theta1 * np.sin(theta1)
-                    + 0.5 * l2 * diff_theta2 * np.sin(theta2)
-            )
-            - m2 * diff_theta1 * np.sin(theta1) * (
-                    + 1.0 * l1 * diff_theta1 * np.cos(theta1)
-                    + 0.5 * l2 * diff_theta2 * np.sin(theta2)
-            )
-            - (.5 * m1 + m2) * g / l1
+    next_omega1 = normalize_angle(omega1 + alpha1 * dt)
+    next_omega2 = normalize_angle(omega2 + alpha2 * dt)
+
+    next_alpha1 = normalize_angle(
+            (
+                    - g * (2*m1 + m2) * np.sin(theta1)
+                    - m2 * g * np.sin(theta1 - 2*theta2)
+                    - 2 * np.sin(theta1 - theta2) * m2 * (
+                            + omega2 ** 2 * l2
+                            + omega1 ** 2 * l1 * np.cos(theta1 - theta2)
+                    )
+            ) / (l1 * (2*m1 + m2 - m2 * np.cos(2*theta1 - 2*theta2)))
     )
 
-    next_diff2_theta2 = (
-            + 2 * l1 / l2 * diff_theta1 * (diff_theta1 - diff_theta2) * np.sin(theta1 - theta2)
-            - 2 * l1 / l2 * diff2_theta1 * np.cos(theta1 - theta2)
-            + l1 / l2 * diff_theta1 * diff_theta2 * np.sin(theta1 - theta2)
-            - 2 * g / l2 * np.sin(theta2)
+    next_alpha2 = normalize_angle(
+            (
+                    2 * np.sin(theta1 - theta2) * (
+                            + omega1**2 * l1 * (m1 + m2)
+                            + g * (m1 + m2) * np.cos(theta1)
+                            + omega2**2 * l2 * m2 * np.cos(theta1 - theta2)
+                    )
+            ) / (l2 * (2*m1 + m2 - m2 * np.cos(2*theta1 - 2*theta2)))
     )
-
-    diff2_theta1 = next_diff2_theta1
-    diff2_theta2 = next_diff2_theta2
-
-    diff_theta1 = next_diff_theta1
-    diff_theta2 = next_diff_theta2
 
     theta1 = next_theta1
     theta2 = next_theta2
 
+    omega1 = next_omega1
+    omega2 = next_omega2
+
+    alpha1 = next_alpha1
+    alpha2 = next_alpha2
+
     print(theta1, theta2)
+
+    t += dt
 
 
 # Press the green button in the gutter to run the script.
