@@ -25,7 +25,7 @@ class Simulation(metaclass=ABCMeta):
 
 class DoublePendulumSimulation(Simulation):
 
-    def __init__(self, dt, g, m1, m2, l1, l2, t, theta1, theta2, omega1=0, omega2=0, alpha1=0, alpha2=0):
+    def __init__(self, dt, g, m1, m2, l1, l2, t, theta1, theta2, omega1=0, omega2=0, alpha1=0, alpha2=0, use_angle_normalization=False):
         # Constants
         self.dt = dt
         self.g = g
@@ -42,6 +42,9 @@ class DoublePendulumSimulation(Simulation):
         self.omega2 = omega2
         self.alpha1 = alpha1
         self.alpha2 = alpha2
+
+        # Other options
+        self.use_angle_normalization = use_angle_normalization
 
     def get_time(self):
         return self.t
@@ -67,8 +70,8 @@ class DoublePendulumSimulation(Simulation):
         # Calculate next values
         self.t = t + dt
 
-        self.theta1 = normalize_angle(theta1 + omega1 * dt)
-        self.theta2 = normalize_angle(theta2 + omega2 * dt)
+        self.theta1 = self.simplify_theta(theta1 + omega1 * dt)
+        self.theta2 = self.simplify_theta(theta2 + omega2 * dt)
 
         self.omega1 = omega1 + alpha1 * dt
         self.omega2 = omega2 + alpha2 * dt
@@ -90,6 +93,11 @@ class DoublePendulumSimulation(Simulation):
                 )
         ) / (l2 * (2 * m1 + m2 - m2 * np.cos(2 * theta1 - 2 * theta2)))
 
+    def simplify_theta(self, theta):
+        if self.use_angle_normalization:
+            return normalize_angle(theta)
+        return theta
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -107,7 +115,7 @@ if __name__ == '__main__':
         l2=np.full(10, 1),
         t=0,
         theta1=np.full(10, np.pi),
-        theta2=np.linspace(np.pi * 0.9990, np.pi - 0.0001, 10),
+        theta2=np.linspace(np.pi * 0.99990, np.pi - 0.00001, 10),
     )
 
     ### Simulation
@@ -116,6 +124,7 @@ if __name__ == '__main__':
     l2_array = np.array(sim.l2).reshape((-1))
 
     scale = 100
+    time_scale = 1
 
     pygame.init()
     # Create the window, saving it to a variable.
@@ -127,13 +136,13 @@ if __name__ == '__main__':
 
     time_start = None
 
-    start_simulation = False
+    run_simulation = False
     while True:
         surface.fill((255, 255, 255))
 
-        if start_simulation:
+        if run_simulation:
             time_now = time.time()
-            sim.step_until(time_now - time_start)
+            sim.step_until((time_now - time_start) * time_scale)
 
         theta1_array = np.array(sim.theta1).reshape((-1))
         theta2_array = np.array(sim.theta2).reshape((-1))
@@ -160,9 +169,14 @@ if __name__ == '__main__':
             if event.type == pygame.VIDEORESIZE:
                 # There's some code to add back window content here.
                 surface = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                start_simulation = True
-                time_start = time.time()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    run_simulation = not run_simulation
+                    time_start = time.time()
+                elif event.key == pygame.K_EQUALS:
+                    time_scale = time_scale * 1.1
+                elif event.key == pygame.K_MINUS:
+                    time_scale = time_scale / 1.1
 
     # stop_t = 10
     #
