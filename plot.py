@@ -11,6 +11,10 @@ should_show_plots = True
 should_save_plots = True
 
 
+def new_plot():
+    plt.figure()
+
+
 def show_plot():
     if should_show_plots:
         plt.show()
@@ -20,6 +24,10 @@ def save_plot(fname):
     if should_save_plots:
         plt.savefig(f'plots/{fname}')
         plt.savefig(f'plots/{fname}.eps')
+
+
+def close_plot():
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -64,21 +72,73 @@ if __name__ == '__main__':
     plot_theta1_list2d = np.array(plot_theta1_list2d).transpose()
     plot_theta2_list2d = np.array(plot_theta2_list2d).transpose()
 
+    plot_x1_list2d = sim.l1 * np.cos(plot_theta1_list2d)
+    plot_y1_list2d = sim.l1 * np.sin(plot_theta1_list2d)
+    plot_r1_list2d = np.sqrt(plot_x1_list2d ** 2 + plot_y1_list2d ** 2)
+    plot_x2_list2d = sim.l2 * np.cos(plot_theta2_list2d) + plot_x1_list2d
+    plot_y2_list2d = sim.l2 * np.cos(plot_theta2_list2d) + plot_y1_list2d
+    plot_r2_list2d = np.sqrt(plot_x2_list2d ** 2 + plot_y2_list2d ** 2)
+
     for i in range(len(sim.theta1)):
+        print(f'Saving case {i}')
+
+        new_plot()
         plt.title(f'Case #{i}: $\\theta_1$ vs $t$')
         plt.plot(plot_t_list, plot_theta1_list2d[i])
         plt.xlabel('$t$ (s)')
         plt.ylabel('$\\theta_1$ (rad)')
         save_plot(f'case-{i}-theta1')
         # show_plot()
+        close_plot()
 
+        new_plot()
         plt.title(f'Case #{i}: $\\theta_2$ vs $t$')
         plt.plot(plot_t_list, plot_theta2_list2d[i])
         plt.xlabel('$t$ (s)')
         plt.ylabel('$\\theta_2$ (rad)')
         save_plot(f'case-{i}-theta2')
         # show_plot()
+        close_plot()
 
+        new_plot()
+        plt.title(f'Case #{i}: $x_1$ vs $t$')
+        plt.plot(plot_t_list, plot_x1_list2d[i])
+        plt.xlabel('$t$ (s)')
+        plt.ylabel('$x_1$ (m)')
+        save_plot(f'case-{i}-x1')
+        # show_plot()
+        close_plot()
+
+        new_plot()
+        plt.title(f'Case #{i}: $y_1$ vs $t$')
+        plt.plot(plot_t_list, plot_y1_list2d[i])
+        plt.xlabel('$t$ (s)')
+        plt.ylabel('$y_1$ (m)')
+        save_plot(f'case-{i}-y1')
+        # show_plot()
+        close_plot()
+
+        new_plot()
+        plt.title(f'Case #{i}: $x_2$ vs $t$')
+        plt.plot(plot_t_list, plot_x2_list2d[i])
+        plt.xlabel('$t$ (s)')
+        plt.ylabel('$x_2$ (m)')
+        save_plot(f'case-{i}-x2')
+        # show_plot()
+        close_plot()
+
+        new_plot()
+        plt.title(f'Case #{i}: $y_2$ vs $t$')
+        plt.plot(plot_t_list, plot_y2_list2d[i])
+        plt.xlabel('$t$ (s)')
+        plt.ylabel('$y_2$ (m)')
+        save_plot(f'case-{i}-y2')
+        # show_plot()
+        close_plot()
+
+        print(f'Saved case {i}')
+
+    new_plot()
     plt.title('All $\\theta_1$ vs. $t$')
     for plot_theta1_list in plot_theta1_list2d:
         plt.plot(plot_t_list, plot_theta1_list)
@@ -86,14 +146,27 @@ if __name__ == '__main__':
     plt.ylabel('$\\theta_1$ (rad)')
     save_plot(f'all-theta1')
     show_plot()
+    close_plot()
 
+    new_plot()
     plt.title('$\\sigma(\\theta_1)$ vs. $t$')
-    plt.plot(plot_t_list, np.std(plot_theta1_list2d, axis=0))
+    plt.plot(plot_t_list, np.std(plot_theta2_list2d, axis=0))
     plt.xlabel('$t$ (s)')
     plt.ylabel('$\\sigma(\\theta_1)$ (rad)')
     save_plot(f'sigma-theta1')
     show_plot()
+    close_plot()
 
+    new_plot()
+    plt.title('$\\sigma(r_1)$ vs. $t$')
+    plt.plot(plot_t_list, np.std(plot_r1_list2d, axis=0))
+    plt.xlabel('$t$ (s)')
+    plt.ylabel('$\\sigma(r_1)$ (m)')
+    save_plot(f'sigma-r1')
+    show_plot()
+    close_plot()
+
+    new_plot()
     plt.title('All $\\theta_2$ vs. $t$')
     for plot_theta2_list in plot_theta2_list2d:
         plt.plot(plot_t_list, plot_theta2_list)
@@ -101,13 +174,25 @@ if __name__ == '__main__':
     plt.ylabel('$\\theta_2$ (rad)')
     save_plot(f'all-theta2')
     show_plot()
+    close_plot()
 
+    new_plot()
     plt.title('$\\sigma(\\theta_2)$ vs. $t$')
     plt.plot(plot_t_list, np.std(plot_theta2_list2d, axis=0))
     plt.xlabel('$t$ (s)')
     plt.ylabel('$\\sigma(\\theta_2)$ (rad)')
     save_plot(f'sigma-theta2')
     show_plot()
+    close_plot()
+
+    new_plot()
+    plt.title('$\\sigma(r_2)$ vs. $t$')
+    plt.plot(plot_t_list, np.std(plot_r2_list2d, axis=0))
+    plt.xlabel('$t$ (s)')
+    plt.ylabel('$\\sigma(r_2)$ (m)')
+    save_plot(f'sigma-r2')
+    show_plot()
+    close_plot()
 
     # stop_t = 10
     #
