@@ -6,19 +6,23 @@ import time
 import numpy as np
 import pygame
 
-from simulation import IdealDoublePendulumSimulation
+from simulation import TigoDoublePendulumSimulation
 
 if __name__ == '__main__':
-    sim = IdealDoublePendulumSimulation(
+    sim = TigoDoublePendulumSimulation(
         dt=1e-4,
         g=9.81,
-        m1=np.full(1, 1),
-        m2=np.full(1, 1),
-        l1=np.full(1, 1),
-        l2=np.full(1, 1),
+        m1=np.full(10, 1),
+        m2=np.full(10, 1),
+        l1=np.full(10, 1),
+        l2=np.full(10, 1),
+        I1=1,
+        I2=1,
+        c1=1,
+        c2=1,
         t=0,
-        theta1=np.full(1, np.pi),
-        theta2=np.full(1, 0.00001),
+        theta1=np.full(10, np.pi),
+        theta2=np.linspace(np.pi*0.99999, np.pi*0.999999, 10),
     )
 
     ### Rendering

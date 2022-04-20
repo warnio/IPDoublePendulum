@@ -4,16 +4,20 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-from simulation import IdealDoublePendulumSimulation
+from simulation import TigoDoublePendulumSimulation
 
 if __name__ == '__main__':
-    sim = IdealDoublePendulumSimulation(
+    sim = TigoDoublePendulumSimulation(
         dt=1e-4,
         g=9.81,
         m1=1,
         m2=1,
         l1=np.full(1000, 1),
         l2=np.full(1000, 1),
+        I1=1,
+        I2=1,
+        c1=1,
+        c2=1,
         t=0,
         theta1=np.full(1000, np.pi),
         theta2=np.linspace(0, np.pi, 1000),
