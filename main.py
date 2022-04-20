@@ -2,6 +2,7 @@
 
 import numpy as np
 from abc import ABCMeta, abstractmethod
+import matplotlib.pyplot as plt
 
 
 def normalize_angle(angle):
@@ -25,7 +26,7 @@ class Simulation(metaclass=ABCMeta):
 
 class DoublePendulumSimulation(Simulation):
 
-    def __init__(self, dt, g, m1, m2, l1, l2, t, theta1, theta2, omega1=0, omega2=0, alpha1=0, alpha2=0, use_angle_normalization=False):
+    def __init__(self, dt, g, m1, m2, l1, l2, I1, I2, c1, c2, t, theta1, theta2, omega1=0, omega2=0, alpha1=0, alpha2=0, use_angle_normalization=False):
         # Constants
         self.dt = dt
         self.g = g
@@ -33,6 +34,10 @@ class DoublePendulumSimulation(Simulation):
         self.m2 = m2
         self.l1 = l1
         self.l2 = l2
+        self.I1 = I1
+        self.I2 = I2
+        self.c1 = c1
+        self.c2 = c2
 
         # Variables
         self.t = t
@@ -57,6 +62,10 @@ class DoublePendulumSimulation(Simulation):
         m2 = self.m2
         l1 = self.l1
         l2 = self.l2
+        I1 = self.I1
+        I2 = self.I2
+        c1 = self.c1
+        c2 = self.c2
 
         # Variables
         t = self.t
@@ -76,22 +85,46 @@ class DoublePendulumSimulation(Simulation):
         self.omega1 = omega1 + alpha1 * dt
         self.omega2 = omega2 + alpha2 * dt
 
-        self.alpha1 = (
-                - g * (2 * m1 + m2) * np.sin(theta1)
-                - m2 * g * np.sin(theta1 - 2 * theta2)
-                - 2 * np.sin(theta1 - theta2) * m2 * (
-                        + omega2 ** 2 * l2
-                        + omega1 ** 2 * l1 * np.cos(theta1 - theta2)
-                )
-        ) / (l1 * (2 * m1 + m2 - m2 * np.cos(2 * theta1 - 2 * theta2)))
+#       self.alpha1 = (
+#               - g * (2 * m1 + m2) * np.sin(theta1)
+#               - m2 * g * np.sin(theta1 - 2 * theta2)
+#               - 2 * np.sin(theta1 - theta2) * m2 * (
+#                       + omega2 ** 2 * l2
+#                       + omega1 ** 2 * l1 * np.cos(theta1 - theta2)
+#               )
+#       ) / (l1 * (2 * m1 + m2 - m2 * np.cos(2 * theta1 - 2 * theta2)))
 
-        self.alpha2 = (
-                2 * np.sin(theta1 - theta2) * (
-                        + omega1 ** 2 * l1 * (m1 + m2)
-                        + g * (m1 + m2) * np.cos(theta1)
-                        + omega2 ** 2 * l2 * m2 * np.cos(theta1 - theta2)
-                )
-        ) / (l2 * (2 * m1 + m2 - m2 * np.cos(2 * theta1 - 2 * theta2)))
+#       self.alpha2 = (
+#               2 * np.sin(theta1 - theta2) * (
+#                       + omega1 ** 2 * l1 * (m1 + m2)
+#                       + g * (m1 + m2) * np.cos(theta1)
+#                       + omega2 ** 2 * l2 * m2 * np.cos(theta1 - theta2)
+#               )
+#       ) / (l2 * (2 * m1 + m2 - m2 * np.cos(2 * theta1 - 2 * theta2)))
+
+        I1_ = m1*l1**2 / 4 + m2*l1**2 + I1
+        I2_ = m2*l2**2 / 4 + m2*l2**2 + I2
+        k = m2*l1*l2 / 2
+        A = (m1 + 2*m2)/2*g*l1
+        B = 1/2*m2*g*l2
+        Fw1 = c1*omega1**2*l1**2 / I1_ * (omega1 > 0) - c1*omega1**2*l1**2 / I1_ * (omega2 <= 0)
+        Fw2 = c2*((omega1*l1*np.cos(theta1) + omega2*l2*np.cos(theta2))**2 + 
+                  (omega1*l1*np.sin(theta1) + omega2*l2*np.sin(theta2))**2) * (omega2 > 0) - \
+              c2*((omega1*l1*np.cos(theta1) + omega2*l2*np.cos(theta2))**2 + 
+                  (omega1*l1*np.sin(theta1) + omega2*l2*np.sin(theta2))**2) * (omega2 <= 0)
+
+        self.alpha1 = - (k*omega2**2 * np.sin(theta1 - theta2) + k*alpha2*np.cos(theta1 - theta2) + A*np.sin(theta1) + Fw1) / I1
+        self.alpha2 =   (k*omega1**2 * np.sin(theta1 - theta2) - k*alpha1*np.cos(theta1 - theta2) - B*np.sin(theta2) + \
+                         k*omega1**2 * np.sin(theta1 - theta2) - k*alpha1*np.cos(theta1 - theta2) - B*np.sin(theta2) - Fw2) / I2_
+
+#       self.alpha1 = - (m2*alpha2*l1*l2*np.cos(theta1-theta2) \
+#                     + 1/2*m2*omega2**2*l1*l2*np.sin(theta1-theta2) \
+#                     + (m1+2*m2)/2*g*l1*np.sin(theta1)) \
+#                     / (1/4*m1*l1**2+m2*l1**2+I1)
+#       self.alpha2 = (-1/2*m2*alpha2*l1*l2*np.cos(theta1-theta2) \
+#                     + 1/2*m2*omega1**2*l1*l2*np.sin(theta1-theta2) \
+#                     - m2/2*g*l2*np.sin(theta2)) \
+#                     / (1/4*m2*l2**2 + I2)
 
     def simplify_theta(self, theta):
         if self.use_angle_normalization:
@@ -113,9 +146,13 @@ if __name__ == '__main__':
         m2=1,
         l1=np.full(10, 1),
         l2=np.full(10, 1),
+        I1=1,
+        I2=1,
+        c1=1,
+        c2=1,
         t=0,
-        theta1=np.full(10, np.pi),
-        theta2=np.linspace(np.pi * 0.99990, np.pi - 0.00001, 10),
+        theta1=-np.full(10, np.pi),
+        theta2=np.linspace(np.pi * 0.9990, np.pi - 0.0001, 10),
     )
 
     ### Simulation
@@ -135,6 +172,12 @@ if __name__ == '__main__':
     # font = pygame.font.SysFont(None, 30)
 
     time_start = None
+
+    # PLOTTING
+    prev_sim_time = 0
+    ts = []
+    y1s = []
+    y2s = []
 
     run_simulation = False
     while True:
@@ -177,6 +220,19 @@ if __name__ == '__main__':
                     time_scale = time_scale * 1.1
                 elif event.key == pygame.K_MINUS:
                     time_scale = time_scale / 1.1
+
+        if sim.get_time() - prev_sim_time > 0:
+            print(sim.get_time())
+            ts += [sim.get_time()]
+            y1s += [np.std(theta1_array)]
+            y2s += [np.std(theta2_array)]
+            prev_sim_time += .1
+        if sim.get_time() > 45:
+            break
+
+    plt.plot(ts, y1s)
+    plt.plot(ts, y2s)
+    plt.show()
 
     # stop_t = 10
     #
