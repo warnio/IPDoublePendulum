@@ -181,3 +181,17 @@ class TigoDoublePendulumSimulation(Simulation):
         if self.use_angle_normalization:
             return normalize_angle(theta)
         return theta
+
+
+class OurDoublePendulumSimulation(TigoDoublePendulumSimulation):
+
+    def __init__(self, dt, t, theta1, theta2, omega1=0, omega2=0, alpha1=0, alpha2=0, use_angle_normalization=False):
+        g = 9.81
+        m1 = 131e-3
+        m2 = 131e-3
+        l = 33.8e-2
+        I1 = 1.4e-2
+        I2 = 9.9e-3
+        c1 = 0
+        c2 = 0
+        super().__init__(dt, g, m1, m2, l, l, I1, I2, c1, c2, t, theta1, theta2, omega1, omega2, alpha1, alpha2, use_angle_normalization)
